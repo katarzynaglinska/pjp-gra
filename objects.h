@@ -10,3 +10,13 @@ struct mojkoszyk
 	int speed;
 
 };
+
+struct Jablko
+{
+
+	int x;
+	int y;
+	bool live;
+	int speed;
+
+};

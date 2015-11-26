@@ -1,14 +1,13 @@
 #include <allegro5\allegro.h>
 #include <allegro5\allegro_primitives.h>
-#include<allegro5\bitmap.h>
-#include <allegro5\allegro_image.h>
 #include "objects.h"
 
 
 const int WIDTH = 640;
 const int HEIGHT = 480;
+const int Jablko_num = 7;
 enum KEYS { LEFT, RIGHT };
-bool keys[5] = { false, false };
+bool keys[2] = { false, false };
 
 
 void Initkoszyk(mojkoszyk &koszyk);
@@ -16,8 +15,15 @@ void Drawkoszyk(mojkoszyk &koszyk);
 void MovekoszykLeft(mojkoszyk &koszyk);
 void MovekoszykRight(mojkoszyk &koszyk);
 
+void InitJablko(Jablko jabluszko[], int size);
+void DrawJablko(Jablko jabluszko[], int size);
+void StartJablko(Jablko jabluszko[], int size);
+void UpdateJablko(Jablko jabluszko[], int size);
+
 int main(void)
 {
+	srand(time(NULL));
+
 	//primitive variable
 	const int FPS = 60;
 	bool done = false;
@@ -27,12 +33,12 @@ int main(void)
 
 	//object variables
 	mojkoszyk koszyk;
+	Jablko jabluszko[Jablko_num];
 
 	//Allegro variables
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_TIMER *timer = NULL;
-	ALLEGRO_BITMAP *image = NULL;
 
 	//Initialization Functions
 	if (!al_init())										//initialize Allegro
@@ -46,7 +52,7 @@ int main(void)
 	//Allegro Module Init
 	al_init_primitives_addon();
 	al_install_keyboard();
-	al_init_image_addon();
+
 
 
 	event_queue = al_create_event_queue();
@@ -54,6 +60,7 @@ int main(void)
 
 	//Game Init
 	Initkoszyk(koszyk);
+	InitJablko(jabluszko, Jablko_num);
 
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
 	al_register_event_source(event_queue, al_get_display_event_source(display));
@@ -77,6 +84,10 @@ int main(void)
 				MovekoszykLeft(koszyk);
 			if (keys[RIGHT])
 				MovekoszykRight(koszyk);
+
+
+			StartJablko(jabluszko, Jablko_num);
+			UpdateJablko(jabluszko, Jablko_num);
 		}
 		else if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
 		{
@@ -113,13 +124,14 @@ int main(void)
 			redraw = false;
 
 			Drawkoszyk(koszyk);
+			DrawJablko(jabluszko, Jablko_num);
 
 			al_flip_display();
 			al_clear_to_color(al_map_rgb(0, 0, 0));
 		}
 	}
 
-	al_destroy_bitmap(image);
+
 	al_destroy_event_queue(event_queue);
 	al_destroy_timer(timer);
 	al_destroy_display(display);						//destroy our display object
@@ -151,4 +163,58 @@ void MovekoszykRight(mojkoszyk &koszyk)
 	koszyk.x += koszyk.speed;
 	if (koszyk.x > 580)
 		koszyk.x = 580;
+}
+
+void InitJablko(Jablko jabluszko[], int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+
+		jabluszko[i].live = false;
+		jabluszko[i].speed = 2;
+
+	}
+}
+
+void DrawJablko(Jablko jabluszko[], int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (jabluszko[i].live)
+		{
+			al_draw_filled_circle(jabluszko[i].x, jabluszko[i].y, 15, al_map_rgb(255, 0, 0));
+		}
+	}
+}
+void StartJablko(Jablko jabluszko[], int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (!jabluszko[i].live)
+		{
+			if (rand() % 800 == 0)
+			{
+				jabluszko[i].live = true;
+				jabluszko[i].y = 0;
+				jabluszko[i].x = 30 + rand() % (WIDTH - 30);
+
+
+				break;
+			}
+		}
+	}
+}
+
+void UpdateJablko(Jablko jabluszko[], int size)
+{
+	for (int i = 0; i < size; i++)
+	{
+		if (jabluszko[i].live)
+		{
+			jabluszko[i].y += jabluszko[i].speed;
+
+			if (jabluszko[i].y > HEIGHT)
+				jabluszko[i].live = false;
+		}
+	}
 }
