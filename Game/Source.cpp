@@ -1,6 +1,8 @@
 #include <allegro5\allegro.h>
 #include <allegro5\allegro_primitives.h>
 #include "objects.h"
+#include <allegro5\allegro_font.h>
+#include <allegro5\allegro_ttf.h>
 
 
 const int WIDTH = 640;
@@ -19,6 +21,8 @@ void InitJablko(Jablko jabluszko[], int size);
 void DrawJablko(Jablko jabluszko[], int size);
 void StartJablko(Jablko jabluszko[], int size);
 void UpdateJablko(Jablko jabluszko[], int size);
+
+void EndJablko(Jablko jabluszko[], int size2, mojkoszyk &koszyk);
 
 int main(void)
 {
@@ -39,6 +43,7 @@ int main(void)
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_TIMER *timer = NULL;
+	ALLEGRO_FONT *font = NULL;
 
 	//Initialization Functions
 	if (!al_init())										//initialize Allegro
@@ -52,7 +57,8 @@ int main(void)
 	//Allegro Module Init
 	al_init_primitives_addon();
 	al_install_keyboard();
-
+	al_init_font_addon();
+	al_init_ttf_addon();
 
 
 	event_queue = al_create_event_queue();
@@ -66,7 +72,11 @@ int main(void)
 	al_register_event_source(event_queue, al_get_display_event_source(display));
 	al_register_event_source(event_queue, al_get_timer_event_source(timer));
 
+	font = al_load_font("font.ttf", 22, 0);
+
+
 	al_start_timer(timer);
+
 
 	while (!done)
 	{
@@ -88,6 +98,7 @@ int main(void)
 
 			StartJablko(jabluszko, Jablko_num);
 			UpdateJablko(jabluszko, Jablko_num);
+			EndJablko(jabluszko, Jablko_num, koszyk);
 		}
 		else if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
 		{
@@ -125,6 +136,8 @@ int main(void)
 
 			Drawkoszyk(koszyk);
 			DrawJablko(jabluszko, Jablko_num);
+			al_draw_textf(font, al_map_rgb(255, 0, 255), 20, HEIGHT - 40, 0, "  URATOWANE  %i ", koszyk.uratowane);
+			al_draw_textf(font, al_map_rgb(255, 0, 255), WIDTH - 160, HEIGHT - 40, 0, "  STRACONE  %i ", koszyk.stracone);
 
 			al_flip_display();
 			al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -141,28 +154,33 @@ int main(void)
 
 void Initkoszyk(mojkoszyk &koszyk)
 {
-	koszyk.x = 20;
+	koszyk.x = 320;
 	koszyk.y = 340;
 	koszyk.speed = 5;
+
+	koszyk.xx = 40;
+	koszyk.yy = 7;
+	koszyk.uratowane = 0;
+	koszyk.stracone = 0;
 }
 void Drawkoszyk(mojkoszyk &koszyk)
 {
 
-	al_draw_filled_rectangle(koszyk.x - 12, koszyk.y - 2, koszyk.x + 70, koszyk.y + 30, al_map_rgb(150, 75, 0));
+	al_draw_filled_rectangle(koszyk.x - 40, koszyk.y - 2, koszyk.x + 40, koszyk.y + 30, al_map_rgb(150, 75, 0));
 }
 void MovekoszykLeft(mojkoszyk &koszyk)
 {
 	koszyk.x -= koszyk.speed;
-	if (koszyk.x < 0)
-		koszyk.x = 0;
+	if (koszyk.x < 40)
+		koszyk.x = 40;
 
 }
 
 void MovekoszykRight(mojkoszyk &koszyk)
 {
 	koszyk.x += koszyk.speed;
-	if (koszyk.x > 580)
-		koszyk.x = 580;
+	if (koszyk.x > 600)
+		koszyk.x = 600;
 }
 
 void InitJablko(Jablko jabluszko[], int size)
@@ -173,8 +191,15 @@ void InitJablko(Jablko jabluszko[], int size)
 		jabluszko[i].live = false;
 		jabluszko[i].speed = 2;
 
+		jabluszko[i].xx = 13;
+		jabluszko[i].yy = 13;
+
 	}
 }
+
+
+
+
 
 void DrawJablko(Jablko jabluszko[], int size)
 {
@@ -215,6 +240,36 @@ void UpdateJablko(Jablko jabluszko[], int size)
 
 			if (jabluszko[i].y > HEIGHT)
 				jabluszko[i].live = false;
+		}
+	}
+}
+
+
+void EndJablko(Jablko jabluszko[], int size2, mojkoszyk &koszyk)
+{
+	for (int i = 0; i < size2; i++)
+	{
+		if (jabluszko[i].live)
+		{
+			if (
+				jabluszko[i].x + jabluszko[i].xx > koszyk.x - koszyk.xx && jabluszko[i].x - jabluszko[i].xx < koszyk.x + koszyk.xx &&
+				jabluszko[i].y - jabluszko[i].yy < koszyk.y + koszyk.yy && jabluszko[i].y + jabluszko[i].yy > koszyk.y - koszyk.yy)
+			{
+
+
+				jabluszko[i].live = false;
+				koszyk.uratowane++;
+
+
+			}
+
+			else if (jabluszko[i].y > 375)
+			{
+				koszyk.stracone++;
+
+
+				jabluszko[i].live = false;
+			}
 		}
 	}
 }

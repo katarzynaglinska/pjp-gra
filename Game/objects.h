@@ -9,6 +9,13 @@ struct mojkoszyk
 	int y;
 	int speed;
 
+	int lives;
+	int xx;
+	int yy;
+
+	int uratowane;
+	int stracone;
+
 };
 
 struct Jablko
@@ -19,4 +26,6 @@ struct Jablko
 	bool live;
 	int speed;
 
+	int xx;
+	int yy;
 };
