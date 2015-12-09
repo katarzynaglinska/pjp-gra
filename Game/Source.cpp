@@ -10,6 +10,7 @@ const int HEIGHT = 480;
 const int Jablko_num = 7;
 enum KEYS { LEFT, RIGHT };
 bool keys[2] = { false, false };
+int licz = 0;
 
 
 void Initkoszyk(mojkoszyk &koszyk);
@@ -18,11 +19,15 @@ void MovekoszykLeft(mojkoszyk &koszyk);
 void MovekoszykRight(mojkoszyk &koszyk);
 
 void InitJablko(Jablko jabluszko[], int size);
+void InitJablko2(Jablko jabluszko[], int size, mojkoszyk &koszyk);
+void InitJablko3(Jablko jabluszko[], int size, mojkoszyk &koszyk);
 void DrawJablko(Jablko jabluszko[], int size);
 void StartJablko(Jablko jabluszko[], int size);
 void UpdateJablko(Jablko jabluszko[], int size);
 
 void EndJablko(Jablko jabluszko[], int size2, mojkoszyk &koszyk);
+
+void DrawJablko2(Jablko jabluszko[], int size);
 
 int main(void)
 {
@@ -62,7 +67,7 @@ int main(void)
 
 
 	event_queue = al_create_event_queue();
-	timer = al_create_timer(1.0 / FPS);
+	timer = al_create_timer(1.0 / 60);
 
 	//Game Init
 	Initkoszyk(koszyk);
@@ -76,6 +81,7 @@ int main(void)
 
 
 	al_start_timer(timer);
+
 
 
 	while (!done)
@@ -136,12 +142,32 @@ int main(void)
 
 			Drawkoszyk(koszyk);
 			DrawJablko(jabluszko, Jablko_num);
+
+
 			al_draw_textf(font, al_map_rgb(255, 0, 255), 20, HEIGHT - 40, 0, "  URATOWANE  %i ", koszyk.uratowane);
 			al_draw_textf(font, al_map_rgb(255, 0, 255), WIDTH - 160, HEIGHT - 40, 0, "  STRACONE  %i ", koszyk.stracone);
 
 			al_flip_display();
 			al_clear_to_color(al_map_rgb(0, 0, 0));
 		}
+
+
+		licz = licz + 1;
+
+		al_draw_textf(font, al_map_rgb(255, 255, 255), 0.1*WIDTH, 0.05*HEIGHT, ALLEGRO_ALIGN_CENTRE,
+			"czas: %i", licz / 60);
+
+		if (licz >= 900 && licz <= 1260) {
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 0.5*WIDTH, 0.4*HEIGHT, ALLEGRO_ALIGN_CENTRE, "runda 2");
+		}
+		if (licz == 900) InitJablko2(jabluszko, Jablko_num, koszyk);
+
+		if (licz >= 1800 && licz <= 2160) {
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 0.5*WIDTH, 0.4*HEIGHT, ALLEGRO_ALIGN_CENTRE, "runda 3");
+		}
+		if (licz == 1800) InitJablko3(jabluszko, Jablko_num, koszyk);
+
+
 	}
 
 
@@ -185,6 +211,7 @@ void MovekoszykRight(mojkoszyk &koszyk)
 
 void InitJablko(Jablko jabluszko[], int size)
 {
+
 	for (int i = 0; i < size; i++)
 	{
 
@@ -193,11 +220,40 @@ void InitJablko(Jablko jabluszko[], int size)
 
 		jabluszko[i].xx = 13;
 		jabluszko[i].yy = 13;
+	}
+
+}
+
+void InitJablko2(Jablko jabluszko[], int size, mojkoszyk &koszyk)
+{
+
+	for (int i = 0; i < size; i++)
+	{
+		jabluszko[i].live = false;
+		jabluszko[i].speed = 4;
+		koszyk.speed = 6;
+
+		jabluszko[i].xx = 13;
+		jabluszko[i].yy = 13;
+
+	}
+
+}
+
+void InitJablko3(Jablko jabluszko[], int size, mojkoszyk &koszyk)
+{
+	for (int i = 0; i < size; i++)
+	{
+
+		jabluszko[i].live = false;
+		jabluszko[i].speed = 6;
+		koszyk.speed = 7;
+
+		jabluszko[i].xx = 13;
+		jabluszko[i].yy = 13;
 
 	}
 }
-
-
 
 
 
@@ -211,6 +267,7 @@ void DrawJablko(Jablko jabluszko[], int size)
 		}
 	}
 }
+
 void StartJablko(Jablko jabluszko[], int size)
 {
 	for (int i = 0; i < size; i++)

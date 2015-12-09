@@ -9,6 +9,9 @@ struct mojkoszyk
 	int y;
 	int speed;
 
+	int speed2;
+	int speed3;
+
 	int lives;
 	int xx;
 	int yy;
