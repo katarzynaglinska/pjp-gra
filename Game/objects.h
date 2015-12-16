@@ -32,3 +32,4 @@ struct Jablko
 	int xx;
 	int yy;
 };
+
