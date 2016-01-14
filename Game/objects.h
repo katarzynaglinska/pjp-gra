@@ -1,3 +1,4 @@
+
 #pragma once
 //Object IDs
 
@@ -19,6 +20,8 @@ struct mojkoszyk
 	int uratowane;
 	int stracone;
 
+	ALLEGRO_BITMAP *image;
+
 };
 
 struct Jablko
@@ -31,5 +34,19 @@ struct Jablko
 
 	int xx;
 	int yy;
+
+	ALLEGRO_BITMAP *image;
+};
+
+struct Tlo
+{
+	float x;
+	float y;
+	float speed;
+	int dirX;
+	int width;
+	int height;
+
+	ALLEGRO_BITMAP *image;
 };
 
