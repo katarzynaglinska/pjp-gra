@@ -1,3 +1,4 @@
+
 #include <allegro5\allegro.h>
 #include <allegro5\allegro_primitives.h>
 #include "objects.h"
@@ -12,18 +13,18 @@ const int Jablko_num = 7;
 const int Jablko_num2 = 3;
 enum KEYS { LEFT, RIGHT, ENTER };
 bool keys[3] = { false, false, false };
+enum EKRAN { MENU, REGULY, GRA, KONIEC };
 int licz = 0;
-enum EKRAN { MENU, GRA, KONIEC };
 
 mojkoszyk koszyk;
 Jablko jabluszko[Jablko_num];
 Jablko jabluszko_zle[Jablko_num2];
 
+
 void Initkoszyk(mojkoszyk &koszyk, ALLEGRO_BITMAP *image);
 void Drawkoszyk(mojkoszyk &koszyk);
 void MovekoszykLeft(mojkoszyk &koszyk);
 void MovekoszykRight(mojkoszyk &koszyk);
-
 
 void InitJablko(Jablko jabluszko[], int size, ALLEGRO_BITMAP *image);
 void InitJablko2(Jablko jabluszko[], int size, mojkoszyk &koszyk);
@@ -54,27 +55,31 @@ int main(void)
 	const int FPS = 60;
 	bool done = false;
 	bool redraw = true;
+	bool koniec = false;
 	int imagewidth = 0;
 	int imageheight = 0;
 	int obecne = -1;
 
 	Tlo background;
 
+
 	//Allegro variables
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_TIMER *timer = NULL;
 	ALLEGRO_FONT *font = NULL;
+	ALLEGRO_FONT *font2 = NULL;
+	ALLEGRO_FONT *font3 = NULL;
 	ALLEGRO_BITMAP *image = NULL;
 	ALLEGRO_BITMAP *image2 = NULL;
 	ALLEGRO_BITMAP *image3 = NULL;
+	ALLEGRO_BITMAP *obrazekjablka;
+	ALLEGRO_BITMAP *obrazekkosza;
+	ALLEGRO_BITMAP *obrazekjablka_zle;
+	ALLEGRO_BITMAP *obrazektla = NULL;
 	ALLEGRO_BITMAP *obrazekmenu = NULL;
 	ALLEGRO_BITMAP *obrazekkon = NULL;
-	ALLEGRO_BITMAP *obrazekjablka = NULL;
-	ALLEGRO_BITMAP *obrazekkosza = NULL;
-	ALLEGRO_BITMAP *obrazekjablka_zle = NULL;
-	ALLEGRO_BITMAP *bgImage = NULL;
-
+	ALLEGRO_BITMAP *reguly = NULL;
 
 	//Initialization Functions
 	if (!al_init())										//initialize Allegro
@@ -96,6 +101,22 @@ int main(void)
 	event_queue = al_create_event_queue();
 	timer = al_create_timer(1.0 / 60);
 
+	obrazekkosza = al_load_bitmap("kosz.png");
+	obrazekjablka = al_load_bitmap("jablko.png");
+	obrazekjablka_zle = al_load_bitmap("jablkozle.png");
+	obrazektla = al_load_bitmap("tlo.png");
+	obrazekmenu = al_load_bitmap("menu.png");
+	obrazekkon = al_load_bitmap("koniec2.png");
+	reguly = al_load_bitmap("reguly.png");
+
+
+	ZamianaEkranu(obecne, MENU);
+	//Game Init
+	Initkoszyk(koszyk, obrazekkosza);
+	InitJablko(jabluszko, Jablko_num, obrazekjablka);
+	InitJablko_zle(jabluszko_zle, Jablko_num2, obrazekjablka_zle);
+	StartTlo(background, 0, 0, 0.6, 1040, 480, -1, obrazektla);
+
 
 
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
@@ -103,22 +124,11 @@ int main(void)
 	al_register_event_source(event_queue, al_get_timer_event_source(timer));
 
 	font = al_load_font("font.ttf", 22, 0);
+	font2 = al_load_font("font2.otf", 22, 0);
+	font3 = al_load_font("font3.ttf", 22, 0);
 	image = al_load_bitmap("serce1.jpg");
 	image2 = al_load_bitmap("serce1.jpg");
 	image3 = al_load_bitmap("serce1.jpg");
-	obrazekmenu = al_load_bitmap("menu.png");
-	obrazekkon = al_load_bitmap("koniec2.png");
-	obrazekkosza = al_load_bitmap("kosz.png");
-	obrazekjablka = al_load_bitmap("jablko.png");
-	obrazekjablka_zle = al_load_bitmap("jablkozle.png");
-	bgImage = al_load_bitmap("tlo.png");
-
-	ZamianaEkranu(obecne, MENU);
-
-	Initkoszyk(koszyk, obrazekkosza);
-	InitJablko(jabluszko, Jablko_num, obrazekjablka);
-	InitJablko_zle(jabluszko_zle, Jablko_num2, obrazekjablka_zle);
-	StartTlo(background, 0, 0, 1, 1040, 480, -1, bgImage);
 
 	al_start_timer(timer);
 
@@ -144,7 +154,9 @@ int main(void)
 			if (obecne == MENU)
 			{
 			}
-
+			if (obecne == REGULY)
+			{
+			}
 			else if (obecne == GRA)
 			{
 				UpdateTlo(background);
@@ -162,17 +174,12 @@ int main(void)
 				if (koszyk.lives <= 0)
 					ZamianaEkranu(obecne, KONIEC);
 			}
-
 			else if (obecne == KONIEC)
 			{
 			}
-		}
 
-		else if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-		{
-			done = true;
-		}
 
+		}
 		else if (ev.type == ALLEGRO_EVENT_KEY_DOWN)
 		{
 			switch (ev.keyboard.keycode)
@@ -186,16 +193,15 @@ int main(void)
 			case ALLEGRO_KEY_LEFT:
 				keys[LEFT] = true;
 				break;
-
-
 			case ALLEGRO_KEY_ENTER:
 				keys[ENTER] = true;
 				if (obecne == MENU)
+					ZamianaEkranu(obecne, REGULY);
+				else if (obecne == REGULY)
 					ZamianaEkranu(obecne, GRA);
 				else if (obecne == KONIEC)
 					ZamianaEkranu(obecne, GRA);
 				break;
-
 
 			}
 		}
@@ -210,6 +216,8 @@ int main(void)
 				keys[LEFT] = false;
 				break;
 			}
+
+
 		}
 
 
@@ -221,13 +229,16 @@ int main(void)
 			{
 				al_draw_bitmap(obrazekmenu, 0, 0, 0);
 			}
+			else if (obecne == REGULY)
+			{
+				al_draw_bitmap(reguly, 0, 0, 0);
+			}
 			else if (obecne == GRA)
 			{
 				DrawTlo(background);
 				Drawkoszyk(koszyk);
 				DrawJablko(jabluszko, Jablko_num);
 				DrawJablko_zle(jabluszko_zle, Jablko_num2);
-
 
 				al_draw_textf(font, al_map_rgb(255, 0, 255), 20, HEIGHT - 40, 0, "  URATOWANE  %i ", koszyk.uratowane);
 				al_draw_textf(font, al_map_rgb(255, 0, 255), WIDTH - 160, HEIGHT - 40, 0, "  STRACONE  %i ", koszyk.stracone);
@@ -237,15 +248,17 @@ int main(void)
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 0.1*WIDTH, 0.05*HEIGHT, ALLEGRO_ALIGN_CENTRE,
 					"czas: %i", licz / 60);
 
-				if (licz >= 900 && licz <= 1260) {
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 0.5*WIDTH, 0.4*HEIGHT, ALLEGRO_ALIGN_CENTRE, "runda 2");
-				}
-				if (licz == 900) InitJablko2(jabluszko, Jablko_num, koszyk);
 
-				if (licz >= 1800 && licz <= 2160) {
+				if (licz >= 900 * 4 && licz <= 900 * 4 + 360) {
+					al_draw_textf(font, al_map_rgb(255, 255, 255), 0.5*WIDTH, 0.4*HEIGHT, ALLEGRO_ALIGN_CENTRE, "runda 2");
+					//al_draw_bitmap(tlo)
+				}
+				if (licz == 900 * 4) InitJablko2(jabluszko, Jablko_num, koszyk);
+
+				if (licz >= 1800 * 4 && licz <= 1800 * 4 + 360) {
 					al_draw_textf(font, al_map_rgb(255, 255, 255), 0.5*WIDTH, 0.4*HEIGHT, ALLEGRO_ALIGN_CENTRE, "runda 3");
 				}
-				if (licz == 1800) InitJablko3(jabluszko, Jablko_num, koszyk);
+				if (licz == 1800 * 4) InitJablko3(jabluszko, Jablko_num, koszyk);
 
 				if (koszyk.lives == 3)al_draw_bitmap(image, WIDTH / 2 - 40, HEIGHT - 40, 0);
 				if (koszyk.lives == 3 || koszyk.lives == 2)al_draw_bitmap(image2, WIDTH / 2, HEIGHT - 40, 0);
@@ -257,9 +270,14 @@ int main(void)
 			{
 				licz = 0;
 				al_draw_bitmap(obrazekkon, 0, 0, 0);
-				al_draw_textf(font, al_map_rgb(0, 0, 0), WIDTH / 2, HEIGHT / 2 - 40, ALLEGRO_ALIGN_CENTRE, " KONIEC GRY. ");
-				al_draw_textf(font, al_map_rgb(0, 0, 0), WIDTH / 2 - 5, HEIGHT / 2, ALLEGRO_ALIGN_CENTRE, "Aby zagrac ponownie wcisnij ENTER. ");
+				al_draw_textf(font, al_map_rgb(0, 0, 0), WIDTH / 2, HEIGHT / 2 - 60, ALLEGRO_ALIGN_CENTRE, " Koniec gry. ");
+
+				al_draw_textf(font, al_map_rgb(0, 0, 0), WIDTH / 2 - 90, HEIGHT / 2 - 20, 0, " OWOCE URATOWANE  %i ", koszyk.uratowane);
+				al_draw_textf(font, al_map_rgb(0, 0, 0), WIDTH / 2 - 80, HEIGHT / 2 + 20, 0, " OWOCE STRACONE  %i ", koszyk.stracone);
+
+				al_draw_textf(font, al_map_rgb(0, 0, 0), WIDTH / 2 + 10, HEIGHT / 2 + 60, ALLEGRO_ALIGN_CENTRE, "Aby zagrac ponownie wybierz ENTER. ");
 			}
+
 
 
 			al_flip_display();
@@ -268,12 +286,13 @@ int main(void)
 
 	}
 
-	al_destroy_bitmap(bgImage);
+	al_destroy_bitmap(reguly);
+	al_destroy_bitmap(obrazekmenu);
+	al_destroy_bitmap(obrazekkon);
+	al_destroy_bitmap(obrazektla);
 	al_destroy_bitmap(obrazekjablka_zle);
 	al_destroy_bitmap(obrazekkosza);
 	al_destroy_bitmap(obrazekjablka);
-	al_destroy_bitmap(obrazekmenu);
-	al_destroy_bitmap(obrazekkon);
 	al_destroy_bitmap(image);
 	al_destroy_bitmap(image2);
 	al_destroy_bitmap(image3);
@@ -287,12 +306,9 @@ int main(void)
 	return 0;
 }
 
-
-
-
 void Initkoszyk(mojkoszyk &koszyk, ALLEGRO_BITMAP *image)
 {
-	koszyk.x = 320;
+	koszyk.x = 300;
 	koszyk.y = 340;
 	koszyk.speed = 5;
 	koszyk.lives = 3;
@@ -307,22 +323,23 @@ void Initkoszyk(mojkoszyk &koszyk, ALLEGRO_BITMAP *image)
 }
 void Drawkoszyk(mojkoszyk &koszyk)
 {
+
 	al_draw_bitmap(koszyk.image, koszyk.x, koszyk.y, 0);
 	//al_draw_filled_rectangle(koszyk.x - 40, koszyk.y - 2, koszyk.x + 40, koszyk.y + 30, al_map_rgb(150, 75, 0));
 }
 void MovekoszykLeft(mojkoszyk &koszyk)
 {
 	koszyk.x -= koszyk.speed;
-	if (koszyk.x < 40)
-		koszyk.x = 40;
+	if (koszyk.x < 0)
+		koszyk.x = 0;
 
 }
 
 void MovekoszykRight(mojkoszyk &koszyk)
 {
 	koszyk.x += koszyk.speed;
-	if (koszyk.x > 600)
-		koszyk.x = 600;
+	if (koszyk.x > 560)
+		koszyk.x = 560;
 }
 
 void InitJablko(Jablko jabluszko[], int size, ALLEGRO_BITMAP *image)
@@ -336,6 +353,7 @@ void InitJablko(Jablko jabluszko[], int size, ALLEGRO_BITMAP *image)
 
 		jabluszko[i].xx = 13;
 		jabluszko[i].yy = 13;
+
 
 		if (image != NULL)
 			jabluszko[i].image = image;
@@ -401,7 +419,8 @@ void DrawJablko(Jablko jabluszko[], int size)
 		if (jabluszko[i].live)
 		{
 			al_draw_bitmap(jabluszko[i].image, jabluszko[i].x, jabluszko[i].y, 0);
-		//	al_draw_filled_circle(jabluszko[i].x, jabluszko[i].y, 15, al_map_rgb(255, 0, 0));
+
+			/*al_draw_filled_circle(jabluszko[i].x, jabluszko[i].y, 15, al_map_rgb(255, 0, 0));*/
 		}
 	}
 }
@@ -430,7 +449,7 @@ void StartJablko(Jablko jabluszko[], int size)
 			{
 				jabluszko[i].live = true;
 				jabluszko[i].y = 0;
-				jabluszko[i].x = 30 + rand() % (WIDTH - 30);
+				jabluszko[i].x = 15 + rand() % (WIDTH - 50);
 
 
 				break;
@@ -449,7 +468,7 @@ void StartJablko_zle(Jablko jabluszko_zle[], int size)
 			{
 				jabluszko_zle[i].live = true;
 				jabluszko_zle[i].y = 0;
-				jabluszko_zle[i].x = 30 + rand() % (WIDTH - 30);
+				jabluszko_zle[i].x = 15 + rand() % (WIDTH - 50);
 
 
 				break;
@@ -495,7 +514,7 @@ void EndJablko(Jablko jabluszko[], int size2, mojkoszyk &koszyk)
 		if (jabluszko[i].live)
 		{
 			if (
-				jabluszko[i].x + jabluszko[i].xx > koszyk.x - koszyk.xx && jabluszko[i].x - jabluszko[i].xx < koszyk.x + koszyk.xx &&
+				jabluszko[i].x + jabluszko[i].xx  > koszyk.x - koszyk.xx + 30 && jabluszko[i].x - jabluszko[i].xx < koszyk.x + koszyk.xx + 20 &&
 				jabluszko[i].y - jabluszko[i].yy < koszyk.y + koszyk.yy && jabluszko[i].y + jabluszko[i].yy > koszyk.y - koszyk.yy)
 			{
 
@@ -509,9 +528,9 @@ void EndJablko(Jablko jabluszko[], int size2, mojkoszyk &koszyk)
 			else if (jabluszko[i].y > 375)
 			{
 				koszyk.stracone++;
-
-
 				jabluszko[i].live = false;
+
+				if (koszyk.stracone == 5 || koszyk.stracone == 10 || koszyk.stracone == 15) koszyk.lives--;
 			}
 		}
 	}
@@ -526,7 +545,7 @@ void EndJablko_zle(Jablko jabluszko_zle[], int size2, mojkoszyk &koszyk)
 		if (jabluszko_zle[i].live)
 		{
 			if (
-				jabluszko_zle[i].x + jabluszko_zle[i].xx > koszyk.x - koszyk.xx && jabluszko_zle[i].x - jabluszko_zle[i].xx < koszyk.x + koszyk.xx &&
+				jabluszko_zle[i].x + jabluszko_zle[i].xx  > koszyk.x - koszyk.xx + 30 && jabluszko_zle[i].x - jabluszko_zle[i].xx < koszyk.x + koszyk.xx + 20 &&
 				jabluszko_zle[i].y - jabluszko_zle[i].yy < koszyk.y + koszyk.yy && jabluszko_zle[i].y + jabluszko_zle[i].yy > koszyk.y - koszyk.yy)
 			{
 
@@ -551,6 +570,9 @@ void ZamianaEkranu(int &obecne, int nowe)
 	if (obecne == MENU)
 	{
 	}
+	else if (obecne == REGULY)
+	{
+	}
 	else if (obecne == GRA)
 	{
 	}
@@ -561,6 +583,9 @@ void ZamianaEkranu(int &obecne, int nowe)
 	obecne = nowe;
 
 	if (obecne == MENU)
+	{
+	}
+	if (obecne == REGULY)
 	{
 	}
 	else if (obecne == GRA)
@@ -574,6 +599,8 @@ void ZamianaEkranu(int &obecne, int nowe)
 	}
 }
 
+
+
 void StartTlo(Tlo &back, float x, float y, float speed, int width, int height, int dirX, ALLEGRO_BITMAP *image)
 {
 	back.x = x;
@@ -584,14 +611,12 @@ void StartTlo(Tlo &back, float x, float y, float speed, int width, int height, i
 	back.dirX = dirX;
 	back.image = image;
 }
-
 void UpdateTlo(Tlo &back)
 {
 	back.x += back.speed * back.dirX;
 	if (back.x + back.width <= 0)
 		back.x = 0;
 }
-
 void DrawTlo(Tlo &back)
 {
 	al_draw_bitmap(back.image, back.x, back.y, 0);
@@ -599,3 +624,4 @@ void DrawTlo(Tlo &back)
 	if (back.x + back.width < WIDTH)
 		al_draw_bitmap(back.image, back.x + back.width, back.y, 0);
 }
+

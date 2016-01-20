@@ -49,4 +49,3 @@ struct Tlo
 
 	ALLEGRO_BITMAP *image;
 };
-
